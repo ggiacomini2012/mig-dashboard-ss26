@@ -1,0 +1,1 @@
+criaremos um botao em cada card dos registros para que seja copiar o card completo.

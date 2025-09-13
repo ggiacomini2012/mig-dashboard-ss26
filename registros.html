@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Vendas - Spring Summer 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+    <nav class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-gray-800">Dashboard</a>
+                    <a href="calculadora.html" class="text-gray-600 hover:text-gray-800">Calculadora</a>
+                    <a href="registros.html" class="text-gray-800 font-semibold">Registros</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Registro de Vendas</h2>
+
+        <div class="mb-6 flex space-x-4">
+            <input type="text" id="search-notes" placeholder="Buscar por notas do cliente..." class="w-1/2 p-2 border border-gray-300 rounded-md">
+            <input type="text" id="search-date" placeholder="Buscar por data (DD/MM/YYYY)..." class="w-1/2 p-2 border border-gray-300 rounded-md">
+        </div>
+
+        <div id="sales-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Os registros de vendas serão inseridos aqui -->
+        </div>
+
+    </main>
+
+    <script>
+        const salesList = document.getElementById('sales-list');
+        const searchNotesInput = document.getElementById('search-notes');
+        const searchDateInput = document.getElementById('search-date');
+
+        let allSales = []; // Store all sales for filtering
+
+        function loadSales() {
+            allSales = JSON.parse(localStorage.getItem('sales')) || [];
+            allSales.reverse(); // Reverse the order to show latest first
+            renderSales(allSales);
+        }
+
+        function renderSales(salesToRender) {
+            salesList.innerHTML = '';
+
+            if (salesToRender.length === 0) {
+                salesList.innerHTML = '<p class="text-gray-500">Nenhuma venda registrada ainda.</p>';
+                return;
+            }
+
+            const totalSalesCount = allSales.length; // Get total count before filtering/rendering
+
+            salesToRender.forEach((sale, index) => {
+                const saleElement = document.createElement('div');
+                saleElement.className = 'bg-white p-6 rounded-lg shadow-md flex flex-col justify-between';
+
+                let productsHtml = '<ul>';
+                sale.products.forEach(p => {
+                    productsHtml += '<li>' + p.ref + ' (' + p.size + ', ' + p.color + ') - R$ ' + p.price.toFixed(2) + '</li>';
+                });
+                productsHtml += '</ul>';
+
+                let returnsHtml = '<ul>';
+                if (sale.returns && sale.returns.length > 0) {
+                    sale.returns.forEach(r => {
+                        returnsHtml += '<li>' + r.ref + ' - R$ ' + r.credit.toFixed(2) + '</li>';
+                    });
+                } else {
+                    returnsHtml = '<p>Nenhuma devolução</p>';
+                }
+                returnsHtml += '</ul>';
+
+                // Calculate the original sale number
+                const originalSaleNumber = totalSalesCount - allSales.indexOf(sale);
+
+                saleElement.innerHTML = 
+                    '<div>' +
+                        '<h3 class="text-lg font-medium text-gray-900">Venda #' + originalSaleNumber + ' - ' + new Date(sale.date).toLocaleString() + '</h3>' +
+                        '<div class="mt-4">' +
+                            '<p class="font-semibold">Notas do cliente:</p>' +
+                            '<p>' + sale.customerNote + '</p>' +
+                        '</div>' +
+                        '<div class="mt-4">' +
+                            '<p class="font-semibold">Produtos:</p>' +
+                            productsHtml +
+                        '</div>' +
+                        '<div class="mt-4">' +
+                            '<p class="font-semibold">Devoluções:</p>' +
+                            returnsHtml +
+                        '</div>' +
+                        '<div class="mt-4 grid grid-cols-2 gap-4">' +
+                            '<p><span class="font-semibold">Cashback:</span> R$ ' + sale.cashback.toFixed(2) + '</p>' +
+                            '<p><span class="font-semibold">Desconto Total:</span> R$ ' + sale.totalDiscount.toFixed(2) + '</p>' +
+                            '<p><span class="font-semibold">Preço Final:</span> R$ ' + sale.finalPrice.toFixed(2) + '</p>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mt-6 flex justify-end">' +
+                        '<button class="copy-btn px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Copiar</button>' +
+                    '</div>';
+
+                salesList.appendChild(saleElement);
+
+                const copyBtn = saleElement.querySelector('.copy-btn');
+                copyBtn.addEventListener('click', () => {
+                    const txtContent = 
+                        'Venda #' + originalSaleNumber + ' - ' + new Date(sale.date).toLocaleString() + '\n\n' +
+                        'Notas do cliente:\n' + sale.customerNote + '\n\n' +
+                        'Produtos:\n' + productsHtml.replace(/<[^>]*>/g, '') + '\n' +
+                        'Devoluções:\n' + returnsHtml.replace(/<[^>]*>/g, '') + '\n' +
+                        'Cashback: R$ ' + sale.cashback.toFixed(2) + '\n' +
+                        'Desconto Total: R$ ' + sale.totalDiscount.toFixed(2) + '\n' +
+                        'Preço Final: R$ ' + sale.finalPrice.toFixed(2);
+
+                    navigator.clipboard.writeText(txtContent)
+                        .then(() => {
+                            alert('Conteúdo copiado para a área de transferência!');
+                        })
+                        .catch(err => {
+                            console.error('Erro ao copiar: ', err);
+                            alert('Erro ao copiar o conteúdo.');
+                        });
+                });
+            });
+        }
+
+        function filterSales() {
+            const notesSearchTerm = searchNotesInput.value.toLowerCase();
+            const dateSearchTerm = searchDateInput.value;
+
+            const filtered = allSales.filter(sale => {
+                const matchesNotes = sale.customerNote.toLowerCase().includes(notesSearchTerm);
+                
+                let matchesDate = true;
+                if (dateSearchTerm) {
+                    // Assuming sale.date is a Date object or a string that can be parsed by Date
+                    const saleDate = new Date(sale.date);
+                    const searchDateParts = dateSearchTerm.split('/');
+                    if (searchDateParts.length === 3) {
+                        const searchDay = parseInt(searchDateParts[0]);
+                        const searchMonth = parseInt(searchDateParts[1]) - 1; // Month is 0-indexed
+                        const searchYear = parseInt(searchDateParts[2]);
+
+                        matchesDate = (
+                            saleDate.getDate() === searchDay &&
+                            saleDate.getMonth() === searchMonth &&
+                            saleDate.getFullYear() === searchYear
+                        );
+                    } else {
+                        // Fallback for partial date search or invalid format
+                        matchesDate = saleDate.toLocaleString().toLowerCase().includes(dateSearchTerm.toLowerCase());
+                    }
+                }
+
+                return matchesNotes && matchesDate;
+            });
+            renderSales(filtered);
+        }
+
+        searchNotesInput.addEventListener('input', filterSales);
+        searchDateInput.addEventListener('input', filterSales);
+
+        loadSales();
+    </script>
+
+</body>
+</html>

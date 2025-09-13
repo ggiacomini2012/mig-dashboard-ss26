@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Compras - Spring Summer 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .autocomplete-suggestions {
+            border: 1px solid #ddd;
+            max-height: 150px;
+            overflow-y: auto;
+            position: fixed;
+            background-color: white;
+            z-index: 9999;
+        }
+        .autocomplete-suggestion {
+            padding: 8px;
+            cursor: pointer;
+            z-index: 9999;
+        }
+        .autocomplete-suggestion:hover {
+            background-color: #eee;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <nav class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-gray-800">Dashboard</a>
+                    <a href="calculadora.html" class="text-gray-800 font-semibold">Calculadora</a>
+                    <a href="registros.html" class="text-gray-600 hover:text-gray-800">Registros</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- <h2 class="text-2xl font-bold text-gray-800 mb-6">Calculadora de Compras</h2> -->
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+
+            <!-- Notas sobre o cliente -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col lg:col-span-3">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Notas sobre o cliente</h3>
+                <label for="customer-note" class="sr-only">Notas sobre o cliente</label>
+                <textarea id="customer-note" rows="20" class="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs p-2 flex-grow"></textarea>
+            </div>
+
+            <!-- Produtos e Devoluções (Centralizado) -->
+            <div class="lg:col-span-6 flex flex-col items-center space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-md w-full">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Produtos</h3>
+                    <div id="product-entries" class="mt-4 space-y-4 flex-grow overflow-y-auto pr-2">
+                        <!-- Entradas de produtos serão adicionadas aqui -->
+                    </div>
+                    <button id="add-product" class="mt-6 w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition ease-in-out duration-150">Adicionar Produto</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md w-full">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Devoluções (Crédito)</h3>
+                    <div id="return-entries" class="mt-4 space-y-4 flex-grow overflow-y-auto pr-2">
+                        <!-- Entradas de devolução serão adicionadas aqui -->
+                    </div>
+                    <button id="add-return" class="mt-6 w-full px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition ease-in-out duration-150">Adicionar Devolução</button>
+                </div>
+            </div>
+
+            <!-- Cálculos Finais (Lado Direito) -->
+            <div class="bg-white p-6 rounded-lg shadow-md flex flex-col justify-between lg:col-span-3">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Cálculos Finais</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 text-lg">Subtotal:</span>
+                            <span id="subtotal" class="font-bold text-lg">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 text-lg">Descontos (peças):</span>
+                            <span id="total-discount" class="font-bold text-red-600 text-lg">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 text-lg">Créditos:</span>
+                            <span id="total-credit" class="font-bold text-green-600 text-lg">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                            <label for="cashback" class="text-gray-700 text-lg">Cashback (R$):</label>
+                            <input type="number" id="cashback" value="0" min="0" class="w-24 p-2 rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-lg">
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700 text-lg">Desconto Total:</span>
+                            <span id="total-discount-cashback" class="font-bold text-red-600 text-lg">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                            <span class="text-2xl font-extrabold text-gray-900">Total:</span>
+                            <span id="total" class="text-2xl font-extrabold text-gray-900">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 w-full">
+                    <button id="save-sale" class="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition ease-in-out duration-150">Salvar Venda</button>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        let allProducts = [];
+        const productEntries = document.getElementById('product-entries');
+        const addProductBtn = document.getElementById('add-product');
+        const returnEntries = document.getElementById('return-entries');
+        const addReturnBtn = document.getElementById('add-return');
+        const saveSaleBtn = document.getElementById('save-sale');
+
+        const customerNoteInput = document.getElementById('customer-note');
+        const subtotalEl = document.getElementById('subtotal');
+        const totalDiscountEl = document.getElementById('total-discount');
+        const totalCreditEl = document.getElementById('total-credit');
+        const cashbackInput = document.getElementById('cashback');
+        const totalDiscountCashbackEl = document.getElementById('total-discount-cashback');
+        const totalEl = document.getElementById('total');
+
+        fetch('produtos.json')
+            .then(response => response.json())
+            .then(data => {
+                for (const category in data) {
+                    allProducts = allProducts.concat(data[category]);
+                }
+                loadCurrentOrder(); // Load order after products are fetched
+            });
+
+        addProductBtn.addEventListener('click', () => {
+            const entry = createProductEntry();
+            productEntries.appendChild(entry);
+            addCalculationListeners();
+            saveCurrentOrder();
+        });
+
+        addReturnBtn.addEventListener('click', () => {
+            const entry = createReturnEntry();
+            returnEntries.appendChild(entry);
+            addCalculationListeners();
+            saveCurrentOrder();
+        });
+
+        saveSaleBtn.addEventListener('click', () => {
+            const sale = {
+                date: new Date(),
+                customerNote: customerNoteInput.value,
+                products: [],
+                returns: [],
+                cashback: parseFloat(cashbackInput.value) || 0,
+                totalDiscount: 0,
+                finalPrice: 0,
+            };
+
+            let subtotal = 0;
+            let totalDiscount = 0;
+
+            document.querySelectorAll('#product-entries .grid').forEach(entry => {
+                const ref = entry.querySelector('.ref-input').value;
+                const size = entry.querySelector('.size-input').value;
+                const color = entry.querySelector('.color-input').value;
+                const price = parseFloat(entry.querySelector('.price').value) || 0;
+                const discount = parseFloat(entry.querySelector('.discount').value) || 0;
+                
+                sale.products.push({ ref, size, color, price, discount });
+                subtotal += price;
+                totalDiscount += price * (discount / 100);
+            });
+
+            let totalCredit = 0;
+            document.querySelectorAll('#return-entries .grid').forEach(entry => {
+                const ref = entry.querySelector('.return-ref-input').value;
+                const credit = parseFloat(entry.querySelector('.credit-value').value) || 0;
+                sale.returns.push({ ref, credit });
+                totalCredit += credit;
+            });
+
+            const totalDiscountAndCashback = totalDiscount + sale.cashback;
+            sale.totalDiscount = totalDiscountAndCashback;
+            sale.finalPrice = subtotal - totalDiscountAndCashback - totalCredit;
+
+            const sales = JSON.parse(localStorage.getItem('sales')) || [];
+            sales.push(sale);
+            localStorage.setItem('sales', JSON.stringify(sales));
+
+            alert('Venda salva com sucesso!');
+            sessionStorage.removeItem('currentOrder'); // Clear temporary save after permanent save
+            clearForm(); // Clear the form after saving
+        });
+
+        function createProductEntry(product = {}) {
+            const entry = document.createElement('div');
+            entry.className = 'grid grid-cols-12 gap-4 items-center relative';
+            entry.innerHTML = `
+                <div class="col-span-3">
+                    <label class="block text-xs font-medium text-gray-700">Referência</label>
+                    <input type="text" class="ref-input mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${product.ref || ''}">
+                    <div class="autocomplete-suggestions"></div>
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700">Tamanho</label>
+                    <input type="text" class="size-input mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${product.size || ''}">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700">Cor</label>
+                    <input type="text" class="color-input mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${product.color || ''}">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700">Preço</label>
+                    <input type="number" min="0" class="price mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${product.price || ''}">
+                </div>
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700">Desconto (%)</label>
+                    <input type="number" min="0" value="${product.discount || 0}" class="discount mt-1 block w-full rounded-md border border-gray-300 shadow-sm">
+                </div>
+                <div class="col-span-1 flex items-end">
+                    <button class="remove-btn px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition ease-in-out duration-150">X</button>
+                </div>
+            `;
+            entry.querySelector('.remove-btn').addEventListener('click', () => {
+                entry.remove();
+                calculateTotal();
+                saveCurrentOrder();
+            });
+
+            const refInput = entry.querySelector('.ref-input');
+            const suggestionsContainer = entry.querySelector('.autocomplete-suggestions');
+
+            refInput.addEventListener('input', () => {
+                const searchTerm = refInput.value.toLowerCase();
+                if (searchTerm.length < 2) {
+                    suggestionsContainer.innerHTML = '';
+                    return;
+                }
+
+                const suggestions = allProducts.filter(p => p['Ref. Mig'].toLowerCase().includes(searchTerm));
+                suggestionsContainer.innerHTML = '';
+                suggestions.forEach(p => {
+                    const suggestion = document.createElement('div');
+                    suggestion.className = 'autocomplete-suggestion';
+                    suggestion.textContent = `${p['Ref. Mig']} - ${p['Descrição do produto']}`;
+                    suggestion.addEventListener('click', () => {
+                        refInput.value = p['Ref. Mig'];
+                        const priceInput = entry.querySelector('.price');
+                        const priceString = p['Preço final'] || '0';
+                        priceInput.value = parseFloat(priceString.replace('R$', '').replace(',', '.'));
+                        suggestionsContainer.innerHTML = '';
+                        calculateTotal();
+                        saveCurrentOrder();
+                    });
+                    suggestionsContainer.appendChild(suggestion);
+                });
+            });
+
+            // Add event listeners for saving state on input changes
+            entry.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', saveCurrentOrder);
+            });
+
+            return entry;
+        }
+
+        function createReturnEntry(returnItem = {}) {
+            const entry = document.createElement('div');
+            entry.className = 'grid grid-cols-4 gap-4 items-center';
+            entry.innerHTML = `
+                <div class="col-span-2">
+                    <label class="block text-xs font-medium text-gray-700">Referência da devolução</label>
+                    <input type="text" class="return-ref-input mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${returnItem.ref || ''}">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-700">Valor do crédito</label>
+                    <input type="number" min="0" class="credit-value mt-1 block w-full rounded-md border border-gray-300 shadow-sm" value="${returnItem.credit || ''}">
+                </div>
+                <div class="col-span-1 flex items-end">
+                    <button class="remove-btn px-2 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition ease-in-out duration-150">X</button>
+                </div>
+            `;
+            entry.querySelector('.remove-btn').addEventListener('click', () => {
+                entry.remove();
+                calculateTotal();
+                saveCurrentOrder();
+            });
+
+            // Add event listeners for saving state on input changes
+            entry.querySelectorAll('input').forEach(input => {
+                input.addEventListener('input', saveCurrentOrder);
+            });
+
+            return entry;
+        }
+
+        function addCalculationListeners() {
+            document.querySelectorAll('.price, .discount, .credit-value, #cashback').forEach(el => {
+                el.addEventListener('input', calculateTotal);
+            });
+            customerNoteInput.addEventListener('input', saveCurrentOrder);
+            cashbackInput.addEventListener('input', saveCurrentOrder);
+        }
+
+        function calculateTotal() {
+            let subtotal = 0;
+            let totalDiscount = 0;
+            let totalCredit = 0;
+
+            document.querySelectorAll('#product-entries .grid').forEach(entry => {
+                const price = parseFloat(entry.querySelector('.price').value) || 0;
+                const discount = parseFloat(entry.querySelector('.discount').value) || 0;
+                subtotal += price;
+                totalDiscount += price * (discount / 100);
+            });
+
+            document.querySelectorAll('#return-entries .grid').forEach(entry => {
+                const creditValue = parseFloat(entry.querySelector('.credit-value').value) || 0;
+                totalCredit += creditValue;
+            });
+
+            const cashback = parseFloat(cashbackInput.value) || 0;
+            const totalDiscountAndCashback = totalDiscount + cashback;
+            const finalPrice = subtotal - totalDiscountAndCashback - totalCredit;
+
+            subtotalEl.textContent = `R$ ${finalPrice.toFixed(2)}`;
+            totalDiscountEl.textContent = `- R$ ${totalDiscount.toFixed(2)}`;
+            totalCreditEl.textContent = `- R$ ${totalCredit.toFixed(2)}`;
+            totalDiscountCashbackEl.textContent = `- R$ ${totalDiscountAndCashback.toFixed(2)}`;
+            totalEl.textContent = `R$ ${finalPrice.toFixed(2)}`;
+            saveCurrentOrder(); // Save state after calculation
+        }
+
+        function saveCurrentOrder() {
+            const currentOrder = {
+                customerNote: customerNoteInput.value,
+                products: [],
+                returns: [],
+                cashback: parseFloat(cashbackInput.value) || 0,
+            };
+
+            document.querySelectorAll('#product-entries .grid').forEach(entry => {
+                currentOrder.products.push({
+                    ref: entry.querySelector('.ref-input').value,
+                    size: entry.querySelector('.size-input').value,
+                    color: entry.querySelector('.color-input').value,
+                    price: parseFloat(entry.querySelector('.price').value) || 0,
+                    discount: parseFloat(entry.querySelector('.discount').value) || 0,
+                });
+            });
+
+            document.querySelectorAll('#return-entries .grid').forEach(entry => {
+                currentOrder.returns.push({
+                    ref: entry.querySelector('.return-ref-input').value,
+                    credit: parseFloat(entry.querySelector('.credit-value').value) || 0,
+                });
+            });
+
+            sessionStorage.setItem('currentOrder', JSON.stringify(currentOrder));
+        }
+
+        function loadCurrentOrder() {
+            const savedOrder = JSON.parse(sessionStorage.getItem('currentOrder'));
+            if (savedOrder) {
+                customerNoteInput.value = savedOrder.customerNote;
+                cashbackInput.value = savedOrder.cashback;
+
+                productEntries.innerHTML = '';
+                savedOrder.products.forEach(product => {
+                    const entry = createProductEntry(product);
+                    productEntries.appendChild(entry);
+                });
+
+                returnEntries.innerHTML = '';
+                savedOrder.returns.forEach(returnItem => {
+                    const entry = createReturnEntry(returnItem);
+                    returnEntries.appendChild(entry);
+                });
+                addCalculationListeners();
+                calculateTotal();
+            }
+        }
+
+        function clearForm() {
+            customerNoteInput.value = '';
+            productEntries.innerHTML = '';
+            returnEntries.innerHTML = '';
+            cashbackInput.value = 0;
+            calculateTotal();
+        }
+
+        // Initial load of calculation listeners and potential saved order
+        addCalculationListeners();
+        // loadCurrentOrder() is called after products are fetched
+
+    </script>
+
+</body>
+</html>
