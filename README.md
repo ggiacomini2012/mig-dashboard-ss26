@@ -1,67 +1,75 @@
 # 📊 Dashboard de Produtos - Coleção Spring Summer 2026
 
-Dashboard visual e interativo para a coleção de moda **Spring Summer 2026**, com o tema *"A Gente Sempre Volta Pro Mar"*. Este projeto organiza os produtos das categorias Feminino, Masculino e Acessórios em um layout moderno e responsivo, facilitando a visualização e gestão da coleção.
+Dashboard dinâmico e interativo construído com **React** para a coleção de moda **Spring Summer 2026**, com o tema *"A Gente Sempre Volta Pro Mar"*. Este projeto organiza os produtos em um layout moderno e responsivo, facilitando a visualização e gestão da coleção.
 
 ## ✨ Funcionalidades Principais
 
-* **Visualização por Categorias:** Navegue facilmente entre as seções Feminino, Masculino e Acessórios.
+* **Renderização Dinâmica:** Os produtos são carregados dinamicamente a partir de um arquivo de dados, tornando a atualização do catálogo simples.
 * **Cards de Produtos Detalhados:** Cada produto possui um card com:
     * Foto do produto
     * Nome e Referência (SKU)
     * Tecido ou material
     * Cores disponíveis
     * Preço
-* **Design Responsivo:** A interface se adapta perfeitamente a desktops, tablets e celulares, graças ao **Tailwind CSS**.
-* **Script de Extração de Imagens:** Inclui um script em Python (`extrator_de_imagens.py`) que extrai todas as imagens do catálogo PDF original de forma automática.
+* **Design Responsivo:** A interface se adapta perfeitamente a desktops, tablets e celulares, utilizando **Tailwind CSS**.
+* **Scripts de Automação:**
+    * `extrator_de_imagens.py`: Extrai imagens de um catálogo PDF.
+    * `gerar_dados.py`: Consolida informações de um arquivo Excel e das imagens extraídas em um único `products.json` para o frontend.
 
 ## 🛠️ Tecnologias Utilizadas
 
 * **Frontend:**
-    * HTML5
+    * React (com Vite)
     * [Tailwind CSS](https://tailwindcss.com/)
 * **Ferramentas e Scripts:**
     * Python 3
-    * Biblioteca `PyMuPDF` para manipulação de PDFs
+    * `PyMuPDF` para extração de imagens de PDF
+    * `Pandas` para leitura de arquivos Excel
 
 ## 🚀 Como Executar o Projeto
 
-Existem duas partes neste projeto: a visualização do dashboard e a extração das imagens do catálogo.
+O fluxo de trabalho consiste em preparar os dados (extrair imagens e gerar o JSON) e depois rodar a aplicação React.
 
-### 1. Visualizando o Dashboard
-
-Nenhuma instalação é necessária. Basta abrir o arquivo `dashboard_produtos.html` em qualquer navegador de internet.
-
-### 2. Extraindo as Imagens do Catálogo PDF
-
-Para usar o script que extrai as imagens, você precisará do Python configurado no seu computador.
-
-1.  **Clone este repositório:**
+1.  **Clone o repositório e configure o ambiente Python:**
     ```
     git clone [URL_DO_SEU_REPOSITORIO]
-    cd [NOME_DA_PASTA_DO_PROJETO]
+    cd dashboard-ss26
     ```
-
-2.  **Crie e ative um ambiente virtual (venv):**
+    
+    Crie e ative um ambiente virtual:
     ```
     # Criar o ambiente
-    python -m venv venv
+    python -m venv .venv
 
     # Ativar no Windows (Git Bash) ou macOS/Linux
-    source venv/Scripts/activate
+    source .venv/Scripts/activate
     ```
 
-3.  **Instale as dependências necessárias:**
+    Instale as dependências do Python:
     ```
     pip install -r requirements.txt
     ```
 
-4.  **Execute o script:**
-    * Coloque o arquivo `Catálogo SS26_compressed.pdf` na pasta principal do projeto.
-    * Execute o script para extrair as imagens:
-        ```
-        python extrator_de_imagens.py
-        ```
-    * As imagens serão salvas na pasta `/imagens_do_catalogo`.
+2.  **Prepare os Dados dos Produtos:**
+    * **(Opcional) Extraia as imagens:** Se precisar extrair as imagens do PDF novamente, coloque o `Catálogo SS26_compressed.pdf` na raiz e execute:
+      ```
+      python extrator_de_imagens.py
+      ```
+      As imagens serão salvas em `imagens_extraidas/`.
+    * **Gere o arquivo de dados:** Coloque o arquivo `Lista-produtos-SS26.xlsx` na raiz do projeto e execute o script para gerar o JSON:
+      ```
+      python gerar_dados.py
+      ```
+      Isso criará o arquivo `frontend/public/products.json`.
+
+3.  **Execute a Aplicação React:**
+    Navegue até a pasta do frontend, instale as dependências e inicie o servidor de desenvolvimento:
+    ```bash
+    cd frontend
+    npm install
+    npm run dev
+    ```
+    Abra o navegador no endereço fornecido (geralmente `http://localhost:5173`).
 
 ## 📂 Estrutura do Projeto
 

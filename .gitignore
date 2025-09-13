@@ -26,5 +26,15 @@ wheels/
 
 # Project-specific ignores
 imagens_do_catalogo/
+imagens_extraidas/
 *.pdf
 .venv/
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
