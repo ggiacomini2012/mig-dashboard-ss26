@@ -26,7 +26,6 @@ wheels/
 
 # Project-specific ignores
 imagens_do_catalogo/
-imagens_extraidas/
 *.pdf
 .venv/
 
